@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Table</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+<input type="checkbox" id="sidebar-toggle" hidden>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-brand">
+                <img src="https://i.pravatar.cc/100?img=33" alt="Avatar" class="avatar-small">
+                <span class="brand-name">Parlay Banditz <i class="ph ph-caret-down text-muted"></i></span>
+            </div>
+            <label for="sidebar-toggle" class="toggle-btn">
+                <i class="ph ph-caret-left"></i>
+            </label>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item">
+                <i class="ph ph-house"></i>
+                <span class="nav-text">Home</span>
+            </a>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-storefront"></i>
+                    <span class="nav-text">Store</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Store Editor</a>
+                    <a href="#">Products</a>
+                    <a href="#">Customers</a>
+                </div>
+            </details>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-app-window"></i>
+                    <span class="nav-text">Apps</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Browse</a>
+                    <a href="#">Installed</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-megaphone"></i>
+                    <span class="nav-text">Marketing</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Affiliates</a>
+                    <a href="#">Links</a>
+                    <a href="#">Promo codes</a>
+                    <a href="#">Events</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-wallet"></i>
+                    <span class="nav-text">Finances</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Payments</a>
+                    <a href="#">Payouts</a>
+                    <a href="#">Billing history</a>
+                </div>
+            </details>
+
+            <details class="nav-group active">
+                <summary class="nav-item">
+                    <i class="ph ph-users"></i>
+                    <span class="nav-text">Users</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Admins</a>
+                    <a href="#">Clients</a>
+                    <a href="#">Roles</a>
+                </div>
+            </details>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-chat-teardrop-dots"></i>
+                <span class="nav-text">Feedback</span>
+            </a>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-shield-check"></i>
+                <span class="nav-text">Resolution center</span>
+                <span class="sidebar-badge">5</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="left-controls">
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" placeholder="Search">
+                    <span class="shortcut">⌘ K</span>
+                </div>
+            </div>
+
+            <div class="right-controls">
+                <div class="dropdown-container">
+                    <div class="view-as dropdown-trigger">
+                        <span>View as</span>
+                        <span class="dropdown-label">Admin <i class="ph ph-caret-down"></i></span>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item active">Admin</a>
+                        <a href="#" class="dropdown-item">Staff</a>
+                        <a href="#" class="dropdown-item">Vendor</a>
+                    </div>
+                </div>
+                <div class="header-icons">
+                    <i class="ph ph-chat-circle"></i>
+                    <i class="ph ph-book-open"></i>
+                    <i class="ph ph-bell"></i>
+                </div>
+                <div class="dropdown-container">
+                    <div class="user-profile dropdown-trigger">
+                        <img src="https://i.pravatar.cc/100?img=11" alt="Ilya">
+                        <span>Ilya <i class="ph ph-caret-down text-muted"></i></span>
+                    </div>
+                    <div class="dropdown-menu right-aligned">
+                        <a href="#" class="dropdown-item"><i class="ph ph-user"></i> Profile</a>
+                        <a href="#" class="dropdown-item"><i class="ph ph-gear"></i> Settings</a>
+                        <hr class="dropdown-divider">
+                        <a href="#" class="dropdown-item text-red"><i class="ph ph-sign-out"></i> Log out</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="section-header">
+                <h2>Admins</h2>
+                <a class="btn-primary" href="form.html"><i class="ph ph-plus"></i> Add New Admin</a>
+            </div>
+
+            <div class="card table-card">
+                <div class="table-container">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox"></th>
+                                <th>USER</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                                <th>LAST LOGIN</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>
+                                    <div class="user-cell">
+                                        <img src="https://i.pravatar.cc/100?img=1" class="avatar-tiny">
+                                        <div class="user-info">
+                                            <span class="user-name">Ilya Fedotov</span>
+                                            <span class="user-email">ilya@parlay.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Owner</td>
+                                <td><span class="badge positive">Active</span></td>
+                                <td>Just now</td>
+                                <td>
+                                    <div class="dropdown-container">
+                                        <button class="icon-btn dropdown-trigger"><i class="ph ph-dots-three-vertical"></i></button>
+                                        <div class="dropdown-menu right-aligned">
+                                            <a href="#" class="dropdown-item"><i class="ph ph-pencil-simple"></i> Edit</a>
+                                            <a href="#" class="dropdown-item"><i class="ph ph-shield-check"></i> Permissions</a>
+                                            <hr class="dropdown-divider">
+                                            <a href="#" class="dropdown-item text-red"><i class="ph ph-trash"></i> Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>
+                                    <div class="user-cell">
+                                        <img src="https://i.pravatar.cc/100?img=2" class="avatar-tiny">
+                                        <div class="user-info">
+                                            <span class="user-name">Alex Smith</span>
+                                            <span class="user-email">alex@parlay.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Manager</td>
+                                <td><span class="badge positive">Active</span></td>
+                                <td>2h ago</td>
+                                <td>
+                                    <div class="dropdown-container">
+                                        <button class="icon-btn dropdown-trigger"><i class="ph ph-dots-three-vertical"></i></button>
+                                        <div class="dropdown-menu right-aligned">
+                                            <a href="#" class="dropdown-item"><i class="ph ph-pencil-simple"></i> Edit</a>
+                                            <a href="#" class="dropdown-item"><i class="ph ph-shield-check"></i> Permissions</a>
+                                            <hr class="dropdown-divider">
+                                            <a href="#" class="dropdown-item text-red"><i class="ph ph-trash"></i> Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>
+                                    <div class="user-cell">
+                                        <img src="https://i.pravatar.cc/100?img=3" class="avatar-tiny">
+                                        <div class="user-info">
+                                            <span class="user-name">Sarah Connor</span>
+                                            <span class="user-email">sarah@parlay.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Support</td>
+                                <td><span class="badge negative">Suspended</span></td>
+                                <td>1d ago</td>
+                                <td>
+                                    <div class="dropdown-container">
+                                        <button class="icon-btn dropdown-trigger"><i class="ph ph-dots-three-vertical"></i></button>
+                                        <div class="dropdown-menu right-aligned">
+                                            <a href="#" class="dropdown-item"><i class="ph ph-pencil-simple"></i> Edit</a>
+                                            <a href="#" class="dropdown-item"><i class="ph ph-shield-check"></i> Permissions</a>
+                                            <hr class="dropdown-divider">
+                                            <a href="#" class="dropdown-item text-red"><i class="ph ph-trash"></i> Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>
+                                    <div class="user-cell">
+                                        <img src="https://i.pravatar.cc/100?img=4" class="avatar-tiny">
+                                        <div class="user-info">
+                                            <span class="user-name">John Doe</span>
+                                            <span class="user-email">john@parlay.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Staff</td>
+                                <td><span class="badge outline-yellow">Invited</span></td>
+                                <td>Never</td>
+                                <td>
+                                    <div class="dropdown-container">
+                                        <button class="icon-btn dropdown-trigger"><i class="ph ph-dots-three-vertical"></i></button>
+                                        <div class="dropdown-menu right-aligned">
+                                            <a href="#" class="dropdown-item"><i class="ph ph-pencil-simple"></i> Edit</a>
+                                            <a href="#" class="dropdown-item"><i class="ph ph-shield-check"></i> Permissions</a>
+                                            <hr class="dropdown-divider">
+                                            <a href="#" class="dropdown-item text-red"><i class="ph ph-trash"></i> Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>
+                                    <div class="user-cell">
+                                        <img src="https://i.pravatar.cc/100?img=5" class="avatar-tiny">
+                                        <div class="user-info">
+                                            <span class="user-name">Jane Smith</span>
+                                            <span class="user-email">jane@parlay.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Developer</td>
+                                <td><span class="badge positive">Active</span></td>
+                                <td>3h ago</td>
+                                <td>
+                                    <div class="dropdown-container">
+                                        <button class="icon-btn dropdown-trigger"><i class="ph ph-dots-three-vertical"></i></button>
+                                        <div class="dropdown-menu right-aligned">
+                                            <a href="#" class="dropdown-item"><i class="ph ph-pencil-simple"></i> Edit</a>
+                                            <a href="#" class="dropdown-item"><i class="ph ph-shield-check"></i> Permissions</a>
+                                            <hr class="dropdown-divider">
+                                            <a href="#" class="dropdown-item text-red"><i class="ph ph-trash"></i> Delete</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="pagination-info">Showing 1 to 5 of 50 entries</div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn disabled"><i class="ph ph-caret-left"></i></button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <span class="pagination-ellipsis">...</span>
+                        <button class="pagination-btn">10</button>
+                        <button class="pagination-btn"><i class="ph ph-caret-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

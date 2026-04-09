@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard UI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+<input type="checkbox" id="sidebar-toggle" hidden>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-brand">
+                <img src="https://i.pravatar.cc/100?img=33" alt="Avatar" class="avatar-small">
+                <span class="brand-name">Parlay Banditz <i class="ph ph-caret-down text-muted"></i></span>
+            </div>
+            <label for="sidebar-toggle" class="toggle-btn">
+                <i class="ph ph-caret-left"></i>
+            </label>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active">
+                <i class="ph ph-house"></i>
+                <span class="nav-text">Home</span>
+            </a>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-storefront"></i>
+                    <span class="nav-text">Store</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Store Editor</a>
+                    <a href="#">Products</a>
+                    <a href="#">Customers</a>
+                </div>
+            </details>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-app-window"></i>
+                    <span class="nav-text">Apps</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Browse</a>
+                    <a href="#">Installed</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-megaphone"></i>
+                    <span class="nav-text">Marketing</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Affiliates</a>
+                    <a href="#">Links</a>
+                    <a href="#">Promo codes</a>
+                    <a href="#">Events</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-wallet"></i>
+                    <span class="nav-text">Finances</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Payments</a>
+                    <a href="#">Payouts</a>
+                    <a href="#">Billing history</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-users"></i>
+                    <span class="nav-text">Users</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="users.html">Admins</a>
+                    <a href="#">Clients</a>
+                    <a href="#">Roles</a>
+                </div>
+            </details>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-chat-teardrop-dots"></i>
+                <span class="nav-text">Feedback</span>
+            </a>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-shield-check"></i>
+                <span class="nav-text">Resolution center</span>
+                <span class="sidebar-badge">5</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="left-controls">
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" placeholder="Search">
+                    <span class="shortcut">⌘ K</span>
+                </div>
+            </div>
+
+            <div class="right-controls">
+                <div class="dropdown-container">
+                    <div class="view-as dropdown-trigger">
+                        <span>View as</span>
+                        <span class="dropdown-label">Admin <i class="ph ph-caret-down"></i></span>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item active">Admin</a>
+                        <a href="#" class="dropdown-item">Staff</a>
+                        <a href="#" class="dropdown-item">Vendor</a>
+                    </div>
+                </div>
+                <div class="header-icons">
+                    <i class="ph ph-chat-circle"></i>
+                    <i class="ph ph-book-open"></i>
+                    <i class="ph ph-bell"></i>
+                </div>
+                <div class="dropdown-container">
+                    <div class="user-profile dropdown-trigger">
+                        <img src="https://i.pravatar.cc/100?img=11" alt="Ilya">
+                        <span>Ilya <i class="ph ph-caret-down text-muted"></i></span>
+                    </div>
+                    <div class="dropdown-menu right-aligned">
+                        <a href="#" class="dropdown-item"><i class="ph ph-user"></i> Profile</a>
+                        <a href="#" class="dropdown-item"><i class="ph ph-gear"></i> Settings</a>
+                        <hr class="dropdown-divider">
+                        <a href="login.html" class="dropdown-item text-red"><i class="ph ph-sign-out"></i> Log out</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="section-header">
+                <h2>Today</h2>
+                <button class="btn-primary"><i class="ph ph-storefront"></i> Apply to Marketplace</button>
+            </div>
+
+            <div class="dashboard-grid today-grid">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title">Daily processing <i class="ph ph-info info-icon"></i></span>
+                            <div class="card-value-group">
+                                <h3>$8,492.11</h3>
+                                <span class="badge positive">+$1,490.00 ↑</span>
+                            </div>
+                            <span class="card-subtitle">$891.95</span>
+                        </div>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="chart-area-placeholder">
+                        <svg width="100%" height="150" viewBox="0 0 500 150" preserveAspectRatio="none">
+                            <path d="M0,100 Q50,60 100,70 T200,40 T300,90 T400,110 T500,40" fill="none" stroke="#7b61ff" stroke-width="2"/>
+                            <circle cx="100" cy="70" r="4" fill="#fff" stroke="#7b61ff" stroke-width="2"/>
+                            <circle cx="200" cy="40" r="4" fill="#fff" stroke="#7b61ff" stroke-width="2"/>
+                            <circle cx="300" cy="90" r="4" fill="#fff" stroke="#7b61ff" stroke-width="2"/>
+                            <circle cx="400" cy="110" r="4" fill="#fff" stroke="#7b61ff" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Daily stats <i class="ph ph-info info-icon"></i></span>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="stats-list">
+                        <div class="stat-row">
+                            <div class="stat-label border-green">Revenue</div>
+                            <div class="stat-values">
+                                <div><small>Today</small><div>$891.95</div></div>
+                                <div><small>Yesterday</small><div class="muted">$645.95</div></div>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label border-purple">Customers</div>
+                            <div class="stat-values">
+                                <div><small>Today</small><div>36</div></div>
+                                <div><small>Yesterday</small><div class="muted">32</div></div>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label border-red">New signups</div>
+                            <div class="stat-values">
+                                <div><small>Today</small><div>12</div></div>
+                                <div><small>Yesterday</small><div class="muted">8</div></div>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label border-blue">Resolution center</div>
+                            <div class="stat-values">
+                                <div><small>Today</small><div>3 cases</div></div>
+                                <div><small>Yesterday</small><div class="muted">1 case</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top: 40px;">
+                <div class="stats-filters">
+                    <h2>Stats</h2>
+                    <select class="filter-select"><option>Past 2 weeks</option></select>
+                    <select class="filter-select"><option>Nov 20th - Dec 4th</option></select>
+                    <span class="muted">compared to</span>
+                    <select class="filter-select"><option>Previous period</option></select>
+                    <select class="filter-select"><option>2023</option></select>
+                </div>
+                <div class="action-btns">
+                    <button class="btn-secondary"><i class="ph ph-plus"></i> Add</button>
+                    <button class="btn-secondary"><i class="ph ph-gear"></i> Edit</button>
+                </div>
+            </div>
+
+            <div class="dashboard-grid stats-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title">Gross revenue <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                            <div class="card-value-group">
+                                <h3>$52,402.55</h3>
+                            </div>
+                            <span class="card-subtitle">$8,032.50</span>
+                        </div>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="chart-area-placeholder small">
+                        <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+                            <path d="M0,60 L50,40 L100,50 L150,20 L200,40 L250,30 L300,10" fill="none" stroke="#7b61ff" stroke-width="2"/>
+                            <path d="M0,50 L50,70 L100,40 L150,60 L200,50 L250,60 L300,40" fill="none" stroke="#52525b" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title">Total sales <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                            <div class="card-value-group">
+                                <h3>3,304.35</h3>
+                                <span class="badge positive">+$634.10 ↑</span>
+                            </div>
+                        </div>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="chart-area-placeholder small">
+                        <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+                            <path d="M0,40 L50,30 L100,60 L150,20 L200,50 L250,10 L300,30" fill="none" stroke="#7b61ff" stroke-width="2"/>
+                            <path d="M0,70 L50,60 L100,80 L150,40 L200,70 L250,50 L300,60" fill="none" stroke="#52525b" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Payments <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="stacked-bar">
+                        <div class="segment success" style="width: 22%;"></div>
+                        <div class="segment past" style="width: 13%;"></div>
+                        <div class="segment due" style="width: 37%;"></div>
+                        <div class="segment failed" style="width: 22%;"></div>
+                        <div class="segment refunded" style="width: 6%;"></div>
+                    </div>
+                    <ul class="legend-list">
+                        <li><div><span class="dot success"></span> Successful</div> <span>481 (22%)</span></li>
+                        <li><div><span class="dot past"></span> Past</div> <span>202 (13%)</span></li>
+                        <li><div><span class="dot due"></span> Due</div> <span>534 (37%)</span></li>
+                        <li><div><span class="dot failed"></span> Failed</div> <span>495 (22%)</span></li>
+                        <li><div><span class="dot refunded"></span> Refunded</div> <span>128 (6%)</span></li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title">Net revenue <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                            <div class="card-value-group">
+                                <h3>$32,030.55</h3>
+                                <span class="badge negative">-$690.55 ↓</span>
+                            </div>
+                            <span class="card-subtitle">12.7K</span>
+                        </div>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <div class="chart-area-placeholder small">
+                        <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+                            <path d="M0,70 L50,50 L100,60 L150,30 L200,50 L250,20 L300,40" fill="none" stroke="#7b61ff" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Top customers <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>CUSTOMERS</th>
+                            <th>TOTAL SPEND</th>
+                            <th>STATUS</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><div class="user-cell"><img src="https://i.pravatar.cc/100?img=1" class="avatar-tiny"> Stephanie#4877</div></td>
+                            <td>$34,510.50</td>
+                            <td><span class="badge outline-green">14 days ↻</span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><img src="https://i.pravatar.cc/100?img=2" class="avatar-tiny"> Julia#2401</div></td>
+                            <td>$32,020.00</td>
+                            <td><span class="badge outline-green">14 days ↻</span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><img src="https://i.pravatar.cc/100?img=3" class="avatar-tiny"> Emma#4409</div></td>
+                            <td>$25,400.00</td>
+                            <td><span class="badge outline-green">14 days ↻</span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><img src="https://i.pravatar.cc/100?img=4" class="avatar-tiny"> Jon#0093</div></td>
+                            <td>$19,835.45</td>
+                            <td><span class="badge outline-yellow">3 days ⌛</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Marketplace <i class="ph ph-caret-right text-muted"></i> <i class="ph ph-info info-icon"></i></span>
+                        <button class="icon-btn"><i class="ph ph-export"></i></button>
+                    </div>
+
+                    <div class="marketplace-tabs">
+                        <span class="text-muted">Sort by:</span>
+                        <button class="tab active">Sales</button>
+                        <button class="tab">GMV</button>
+                        <button class="tab">MRR</button>
+                    </div>
+
+                    <table class="data-table mt-16">
+                        <tbody>
+                        <tr>
+                            <td><div class="user-cell"><span class="text-muted">1.</span> <img src="https://i.pravatar.cc/100?img=5" class="avatar-tiny"> James#2230</div></td>
+                            <td class="text-right"><span class="text-green">+$65.30</span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><span class="text-muted">2.</span> <img src="https://i.pravatar.cc/100?img=6" class="avatar-tiny"> Jon#0093</div></td>
+                            <td class="text-right"><span class="text-green">+$58.55</span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><span class="text-muted">3.</span> <img src="https://i.pravatar.cc/100?img=7" class="avatar-tiny"> Tyler#0394</div></td>
+                            <td class="text-right"><span class="text-green">+$51.00</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

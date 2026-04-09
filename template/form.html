@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard UI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+<input type="checkbox" id="sidebar-toggle" hidden>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="user-brand">
+                <img src="https://i.pravatar.cc/100?img=33" alt="Avatar" class="avatar-small">
+                <span class="brand-name">Parlay Banditz <i class="ph ph-caret-down text-muted"></i></span>
+            </div>
+            <label for="sidebar-toggle" class="toggle-btn">
+                <i class="ph ph-caret-left"></i>
+            </label>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item">
+                <i class="ph ph-house"></i>
+                <span class="nav-text">Home</span>
+            </a>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-storefront"></i>
+                    <span class="nav-text">Store</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Store Editor</a>
+                    <a href="#">Products</a>
+                    <a href="#">Customers</a>
+                </div>
+            </details>
+
+            <details class="nav-group" open>
+                <summary class="nav-item">
+                    <i class="ph ph-app-window"></i>
+                    <span class="nav-text">Apps</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Browse</a>
+                    <a href="#">Installed</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-megaphone"></i>
+                    <span class="nav-text">Marketing</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Affiliates</a>
+                    <a href="#">Links</a>
+                    <a href="#">Promo codes</a>
+                    <a href="#">Events</a>
+                </div>
+            </details>
+
+            <details class="nav-group">
+                <summary class="nav-item">
+                    <i class="ph ph-wallet"></i>
+                    <span class="nav-text">Finances</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Payments</a>
+                    <a href="#">Payouts</a>
+                    <a href="#">Billing history</a>
+                </div>
+            </details>
+
+            <details class="nav-group active">
+                <summary class="nav-item">
+                    <i class="ph ph-users"></i>
+                    <span class="nav-text">Users</span>
+                    <i class="ph ph-caret-down chevron"></i>
+                </summary>
+                <div class="nav-sub">
+                    <a href="#">Admins</a>
+                    <a href="#">Clients</a>
+                    <a href="#">Roles</a>
+                </div>
+            </details>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-chat-teardrop-dots"></i>
+                <span class="nav-text">Feedback</span>
+            </a>
+
+            <a href="#" class="nav-item">
+                <i class="ph ph-shield-check"></i>
+                <span class="nav-text">Resolution center</span>
+                <span class="sidebar-badge">5</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="left-controls">
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" placeholder="Search">
+                    <span class="shortcut">⌘ K</span>
+                </div>
+            </div>
+
+            <div class="right-controls">
+                <div class="dropdown-container">
+                    <div class="view-as dropdown-trigger">
+                        <span>View as</span>
+                        <span class="dropdown-label">Admin <i class="ph ph-caret-down"></i></span>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item active">Admin</a>
+                        <a href="#" class="dropdown-item">Staff</a>
+                        <a href="#" class="dropdown-item">Vendor</a>
+                    </div>
+                </div>
+                <div class="header-icons">
+                    <i class="ph ph-chat-circle"></i>
+                    <i class="ph ph-book-open"></i>
+                    <i class="ph ph-bell"></i>
+                </div>
+                <div class="dropdown-container">
+                    <div class="user-profile dropdown-trigger">
+                        <img src="https://i.pravatar.cc/100?img=11" alt="Ilya">
+                        <span>Ilya <i class="ph ph-caret-down text-muted"></i></span>
+                    </div>
+                    <div class="dropdown-menu right-aligned">
+                        <a href="#" class="dropdown-item"><i class="ph ph-user"></i> Profile</a>
+                        <a href="#" class="dropdown-item"><i class="ph ph-gear"></i> Settings</a>
+                        <hr class="dropdown-divider">
+                        <a href="login.html" class="dropdown-item text-red"><i class="ph ph-sign-out"></i> Log out</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="section-header">
+                <h2>Create User</h2>
+                <a class="btn-secondary" href="users.html"><i class="ph ph-arrow-left"></i> Back to Admins</a>
+            </div>
+
+            <div class="card form-card">
+                <form action="#">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="full-name">Full Name</label>
+                            <input type="text" id="full-name" class="form-input" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <input type="text" id="username" class="form-input" placeholder="e.g. johndoe">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-input" placeholder="e.g. john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="role">Role</label>
+                            <select id="role" class="form-select">
+                                <option value="" disabled selected>Select a role</option>
+                                <option value="admin">Administrator</option>
+                                <option value="manager">Manager</option>
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <input type="password" id="password" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label" for="notes">Notes (Optional)</label>
+                            <textarea id="notes" class="form-textarea" placeholder="Add any additional information..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="window.location.href='users.html'">Cancel</button>
+                        <button type="submit" class="btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

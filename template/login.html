@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | TMC Agency</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body style="overflow: auto;">
+    <div class="auth-wrapper">
+        <div class="auth-split">
+            <!-- Left Info Section -->
+            <div class="auth-info-section">
+                <div class="auth-info-content">
+                    <h1>Fast, Efficient and Productive</h1>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                </div>
+                <div class="auth-info-footer">
+                    <div class="language-selector">
+                        <i class="ph ph-globe"></i> English <i class="ph ph-caret-down"></i>
+                    </div>
+                    <div class="auth-info-links">
+                        <a href="#">Terms</a>
+                        <a href="#">Plans</a>
+                        <a href="#">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Form Section -->
+            <div class="auth-form-section">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Sign In</h2>
+                        <p>Welcome back! Please enter your details.</p>
+                    </div>
+
+                    <div class="social-auth">
+                        <button class="btn-social">
+                            <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google">
+                            Sign In with Google
+                        </button>
+                        <button class="btn-social">
+                            <i class="ph-fill ph-apple-logo" style="font-size: 20px;"></i>
+                            Sign In with Apple
+                        </button>
+                    </div>
+
+                    <div class="auth-divider">Or with</div>
+
+                    <form action="index.html">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email</label>
+                            <input type="email" id="email" class="form-input" placeholder="name@company.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                                <i class="ph ph-eye-slash input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="auth-form-links">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="remember">
+                                <label for="remember">Remember for 30 days</label>
+                            </div>
+                            <a href="forgot-password.html">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-full">Sign In</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a href="register.html">Sign Up</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
