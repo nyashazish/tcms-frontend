@@ -56,7 +56,7 @@ export function SpendTrendChart({ data }: SpendTrendProps) {
             }}
             itemStyle={{ color: "var(--text-primary)" }}
             labelStyle={{ color: "var(--text-muted)", marginBottom: "4px" }}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, "Spend"]}
+            formatter={(value) => [`$${Number(value || 0).toFixed(2)}`, "Spend"]}
           />
           <Area
             type="monotone"

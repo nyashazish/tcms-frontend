@@ -159,9 +159,9 @@ export function AdminTabs({ users, clients, syncStatus, thresholds }: Props) {
                     </td>
                     <td style={{ padding: "16px 12px", textAlign: "center" }}>
                       <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-                        <ShieldCheck size={18} weight="fill" color="var(--accent-green)" title="Google Ads connected" />
-                        <ShieldCheck size={18} weight="fill" color="var(--accent-green)" title="Search Console connected" />
-                        <WarningCircle size={18} weight="fill" color="var(--accent-yellow)" title="GBP needs reauth" />
+                        <div title="Google Ads connected"><ShieldCheck size={18} weight="fill" color="var(--accent-green)" /></div>
+                        <div title="Search Console connected"><ShieldCheck size={18} weight="fill" color="var(--accent-green)" /></div>
+                        <div title="GBP needs reauth"><WarningCircle size={18} weight="fill" color="var(--accent-yellow)" /></div>
                       </div>
                     </td>
                     <td style={{ padding: "16px 24px", textAlign: "right" }}>
