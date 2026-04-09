@@ -7,7 +7,7 @@ import {
   TrendUp,
   TrendDown,
   Target,
-  MouseClicker,
+  MouseLeftClick,
   Eye,
   CurrencyDollar,
   ChartBar,
@@ -83,7 +83,7 @@ export default async function GoogleAdsPage({
 
         <div className="card">
           <div className="card-title">
-            <MouseClicker size={16} /> Clicks
+            <MouseLeftClick size={16} /> Clicks
           </div>
           <p className="kpi-value">{metrics.clicks.toLocaleString()}</p>
           <p className="card-subtitle">{metrics.ctr}% CTR</p>

@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   TrendUp,
   TrendDown,
-  MouseClicker,
+  MouseLeftClick,
   Eye,
   MagnifyingGlass,
   ListNumbers,
@@ -56,7 +56,7 @@ export default async function SEOPage({
       <div className="kpi-grid" style={{ marginBottom: 28 }}>
         <div className="card">
           <div className="card-title">
-            <MouseClicker size={16} /> Organic Clicks
+            <MouseLeftClick size={16} /> Organic Clicks
           </div>
           <p className="kpi-value">{metrics.clicks.toLocaleString()}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
