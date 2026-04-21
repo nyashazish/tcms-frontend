@@ -3,6 +3,7 @@ export type Role = 'admin' | 'account_manager' | 'viewer';
 export interface AppUser {
   id: string;
   email: string;
+  fullName?: string;
   role: Role;
   assignedClients: string[];
 }

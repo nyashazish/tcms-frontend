@@ -19,7 +19,22 @@ export async function getSession(): Promise<AppUser | null> {
     const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     const devAuth = cookieStore.get('tcms-dev-auth');
-    return devAuth ? DEV_USER : null;
+    if (!devAuth) return null;
+    try {
+      const data = JSON.parse(devAuth.value);
+      if (data && typeof data === 'object') {
+        return {
+          id: data.id ?? 'dev-user-id',
+          email: data.email ?? DEV_USER.email,
+          fullName: data.fullName,
+          role: data.role ?? 'admin',
+          assignedClients: data.assignedClients ?? [],
+        };
+      }
+    } catch {
+      // old cookie value ('true') — fall through to DEV_USER
+    }
+    return DEV_USER;
   }
 
   try {
@@ -34,10 +49,13 @@ export async function getSession(): Promise<AppUser | null> {
     const role: Role = session.user.app_metadata?.role ?? 'viewer';
     const assignedClients: string[] =
       session.user.app_metadata?.assigned_clients ?? [];
+    const fullName: string | undefined =
+      session.user.user_metadata?.full_name ?? undefined;
 
     return {
       id: session.user.id,
       email: session.user.email ?? '',
+      fullName,
       role,
       assignedClients,
     };

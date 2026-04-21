@@ -27,12 +27,11 @@ export async function POST(request: Request) {
           fullName: 'Dev User',
         },
       });
-      res.cookies.set('tcms-dev-auth', 'true', {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24,
-      });
+      res.cookies.set(
+        'tcms-dev-auth',
+        JSON.stringify({ id: 'dev-user-id', email, role: 'admin', fullName: 'Dev User' }),
+        { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 }
+      );
       return res;
     }
 

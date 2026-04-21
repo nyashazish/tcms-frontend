@@ -7,7 +7,10 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function TopBar() {
   const user = useUser();
-  const initials = user.email.slice(0, 2).toUpperCase();
+  const displayName = user.fullName || user.email;
+  const initials = user.fullName
+    ? user.fullName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    : user.email.slice(0, 2).toUpperCase();
 
   return (
     <header className="top-bar">
@@ -31,22 +34,24 @@ export default function TopBar() {
             <div className="dropdown-trigger user-profile">
               <div
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  background: "var(--accent-purple)",
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: "var(--accent-clr)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "white",
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   flexShrink: 0,
+                  letterSpacing: "0.5px",
+                  boxShadow: "0 0 0 2px var(--accent-clr-bg), 0 1px 3px rgba(0,0,0,0.15)",
                 }}
               >
                 {initials}
               </div>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{user.email}</span>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{displayName}</span>
               <CaretDown size={12} weight="regular" />
             </div>
 
@@ -59,9 +64,12 @@ export default function TopBar() {
                 }}
               >
                 <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>
-                  {user.email}
+                  {displayName}
                 </p>
                 <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                  {user.email !== displayName && (
+                    <span style={{ display: "block" }}>{user.email}</span>
+                  )}
                   {ROLE_LABELS[user.role]}
                 </p>
               </div>
