@@ -16,7 +16,10 @@ export async function getSession(): Promise<AppUser | null> {
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return DEV_USER;
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const devAuth = cookieStore.get('tcms-dev-auth');
+    return devAuth ? DEV_USER : null;
   }
 
   try {

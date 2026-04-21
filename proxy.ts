@@ -16,25 +16,28 @@ import type { NextRequest } from "next/server";
  *   provisioned and the env vars are added to .env.local / Vercel settings.
  */
 export function proxy(request: NextRequest) {
-  // ── Dev passthrough ────────────────────────────────────────────────────────
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return NextResponse.next();
-  }
-
-  // ── Public routes ──────────────────────────────────────────────────────────
   const { pathname } = request.nextUrl;
-  const publicPaths = ["/login", "/forgot-password"];
 
-  if (publicPaths.includes(pathname)) {
+  // ── Public routes (always accessible) ─────────────────────────────────────
+  const publicPaths = ["/login", "/forgot-password"];
+  const isPublic =
+    publicPaths.includes(pathname) || pathname.startsWith("/auth/");
+
+  if (isPublic) return NextResponse.next();
+
+  // ── Dev mode — enforce login via a lightweight cookie ─────────────────────
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    const devAuth = request.cookies.get("tcms-dev-auth");
+    if (!devAuth) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     return NextResponse.next();
   }
 
-  // ── Session check (activate when backend is connected) ────────────────────
-  // TODO: read Supabase session from cookies and redirect to /login if absent.
-  // Use createServerClient from @supabase/ssr here (cannot import from
-  // @/lib/supabase/server — proxy must not share app module graph).
+  // ── Production: session check (wire in once Supabase is provisioned) ────────
+  // Use createServerClient from @supabase/ssr directly here — proxy must not
+  // import from @/lib/supabase/server to avoid sharing the app module graph.
   //
-  // Example:
   //   const supabase = createServerClient(url, key, { cookies: { ... } })
   //   const { data: { session } } = await supabase.auth.getSession()
   //   if (!session) return NextResponse.redirect(new URL('/login', request.url))
