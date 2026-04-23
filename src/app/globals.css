@@ -593,7 +593,7 @@ details.nav-group[open] summary .chevron { transform: rotate(180deg); }
 
 .form-error {
   position: absolute;
-  bottom: -18px;
+  bottom: -14px;
   left: 0;
   font-size: 11px;
   color: var(--accent-red);
@@ -883,9 +883,20 @@ details.nav-group[open] summary .chevron { transform: rotate(180deg); }
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
   color: var(--text-muted);
   cursor: pointer;
   font-size: 18px;
+  line-height: 1;
+}
+.input-icon:focus-visible {
+  color: var(--text-primary);
 }
 
 .auth-card .btn-primary {
