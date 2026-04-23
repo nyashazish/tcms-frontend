@@ -73,10 +73,16 @@ export default function TopBar() {
                   {ROLE_LABELS[user.role]}
                 </p>
               </div>
-              <a href="/login" className="dropdown-item text-red">
+              <button
+                className="dropdown-item text-red"
+                onClick={async () => {
+                  await fetch('/auth/logout', { method: 'POST' });
+                  window.location.href = '/login';
+                }}
+              >
                 <SignOut size={14} weight="regular" />
                 Sign out
-              </a>
+              </button>
             </div>
           </div>
         </div>

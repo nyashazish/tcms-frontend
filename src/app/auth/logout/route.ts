@@ -35,6 +35,15 @@ export async function POST(request: NextRequest) {
 
     await supabase.auth.signOut();
 
+    // Explicitly delete every Supabase auth cookie that arrived on the request.
+    // signOut() clears the in-memory session but doesn't always emit Set-Cookie
+    // headers for every chunked token cookie (sb-*-auth-token.0, .1, …).
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith('sb-')) {
+        response.cookies.delete(name);
+      }
+    });
+
     return response;
   } catch {
     return NextResponse.json(
