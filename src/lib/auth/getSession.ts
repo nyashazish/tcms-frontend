@@ -1,21 +1,13 @@
 import type { AppUser, Role } from './roles';
 import { DEV_USER } from './roles';
 
-/**
- * Server-side session resolver.
- *
- * Returns DEV_USER when Supabase env vars are not set so all dashboard pages
- * remain accessible during local development without a backend.
- *
- * Once NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY are present,
- * reads the real Supabase session and decodes role + assigned_clients from
- * app_metadata (set via a Supabase Auth Hook / admin SDK on the backend).
- */
+const isSupabaseConfigured =
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  !!(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
 export async function getSession(): Promise<AppUser | null> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  // ── Dev mode ───────────────────────────────────────────────────────────────
+  if (!isSupabaseConfigured) {
     const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     const devAuth = cookieStore.get('tcms-dev-auth');
@@ -32,32 +24,39 @@ export async function getSession(): Promise<AppUser | null> {
         };
       }
     } catch {
-      // old cookie value ('true') — fall through to DEV_USER
+      // old 'true' cookie — fall through
     }
     return DEV_USER;
   }
 
+  // ── Production ─────────────────────────────────────────────────────────────
   try {
     const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
 
-    if (!session) return null;
+    // Verify the session token with the Supabase Auth server
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return null;
 
-    const role: Role = session.user.app_metadata?.role ?? 'viewer';
-    const assignedClients: string[] =
-      session.user.app_metadata?.assigned_clients ?? [];
+    // Role and name live in user_profiles, not app_metadata
+    const { createAdminClient } = await import('@/lib/supabase/admin');
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from('user_profiles')
+      .select('full_name, role')
+      .eq('id', user.id)
+      .single();
+
+    const role: Role = (profile?.role as Role) ?? 'viewer';
     const fullName: string | undefined =
-      session.user.user_metadata?.full_name ?? undefined;
+      profile?.full_name ?? user.user_metadata?.full_name ?? undefined;
 
     return {
-      id: session.user.id,
-      email: session.user.email ?? '',
+      id: user.id,
+      email: user.email ?? '',
       fullName,
       role,
-      assignedClients,
+      assignedClients: [],
     };
   } catch {
     return null;

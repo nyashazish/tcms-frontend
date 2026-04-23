@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getUsers } from '@/lib/api/users';
 
 export async function GET() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    const { MOCK_ADMIN_USERS } = await import('@/lib/mock-data');
-    const data = MOCK_ADMIN_USERS.map((u) => ({
-      id: u.id,
-      email: u.email,
-      fullName: u.name,
-      role: u.role,
-      status: u.status,
-      createdAt: '2026-04-10T09:00:00.000Z',
-      updatedAt: u.lastLogin,
-    }));
+  try {
+    const data = await getUsers();
     return NextResponse.json({ data });
+  } catch (err) {
+    console.error('[GET /users]', err);
+    return NextResponse.json(
+      { error: 'Internal Server Error', message: 'Failed to fetch users' },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ data: [] });
 }

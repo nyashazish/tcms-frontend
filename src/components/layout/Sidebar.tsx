@@ -6,10 +6,10 @@ import { useState } from "react";
 import {
   SquaresFour,
   Users,
+  UsersThree,
   Bell,
   GearSix,
   List,
-  UserList,
 } from "@phosphor-icons/react";
 import { useUser } from "@/components/auth/UserProvider";
 
@@ -17,7 +17,7 @@ const allNavItems = [
   { href: "/overview", label: "Overview", icon: SquaresFour, roles: ["admin", "account_manager", "viewer"] },
   { href: "/clients", label: "Clients", icon: Users, roles: ["admin", "account_manager", "viewer"] },
   { href: "/alerts", label: "Alerts", icon: Bell, roles: ["admin", "account_manager", "viewer"] },
-  { href: "/portal-users", label: "Portal Users", icon: UserList, roles: ["admin"] },
+  { href: "/portal-users", label: "Portal Users", icon: UsersThree, roles: ["admin"] },
   { href: "/admin", label: "Admin", icon: GearSix, roles: ["admin"] },
 ] as const;
 

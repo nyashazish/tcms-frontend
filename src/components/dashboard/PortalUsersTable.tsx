@@ -9,15 +9,17 @@ import {
   CaretLeft,
   CaretRight,
   Plus,
+  XCircle,
 } from "@phosphor-icons/react";
 import { ROLE_LABELS } from "@/lib/auth/roles";
+import { InviteUserModal } from "@/components/dashboard/InviteUserModal";
 
 export type PortalUser = {
   id: string;
   email: string;
   fullName: string;
   role: "admin" | "account_manager" | "viewer";
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "invited";
   createdAt: string;
   updatedAt: string;
 };
@@ -51,6 +53,8 @@ const actionBtn = (color: string, bg: string, border: string) =>
 export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
   const [users, setUsers] = useState(initial);
   const [page, setPage] = useState(1);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [revoking, setRevoking] = useState<Set<string>>(new Set());
 
   const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
   const paged = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -79,7 +83,53 @@ export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
     });
   }
 
+  async function handleRevoke(id: string, email: string) {
+    if (!window.confirm(`Revoke invitation for ${email}? They will no longer be able to use their invite link.`)) return;
+
+    setRevoking((prev) => new Set(prev).add(id));
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        window.alert(data.error ?? "Failed to revoke invitation.");
+        return;
+      }
+
+      setUsers((prev) => {
+        const next = prev.filter((u) => u.id !== id);
+        const maxPage = Math.max(1, Math.ceil(next.length / PAGE_SIZE));
+        if (page > maxPage) setPage(maxPage);
+        return next;
+      });
+    } catch {
+      window.alert("Network error — please try again.");
+    } finally {
+      setRevoking((prev) => { const s = new Set(prev); s.delete(id); return s; });
+    }
+  }
+
+  function handleInvited(email: string) {
+    // Optimistically add the invited user to the table
+    const now = new Date().toISOString();
+    const newUser: PortalUser = {
+      id: `pending-${email}`,
+      email,
+      fullName: email,
+      role: "viewer",
+      status: "invited",
+      createdAt: now,
+      updatedAt: now,
+    };
+    setUsers((prev) => [newUser, ...prev]);
+  }
+
   return (
+    <>
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>
       {/* Header */}
       <div
@@ -99,7 +149,7 @@ export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
             {users.length} total
           </span>
         </p>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => setInviteOpen(true)}>
           <Plus size={14} weight="bold" />
           Invite User
         </button>
@@ -165,7 +215,13 @@ export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
                   </td>
                   <td style={{ padding: "12px 12px", textAlign: "center" }}>
                     <span
-                      className={`badge ${u.status === "active" ? "positive" : "negative"}`}
+                      className={`badge ${
+                        u.status === "active"
+                          ? "positive"
+                          : u.status === "invited"
+                          ? "neutral"
+                          : "negative"
+                      }`}
                       style={{ textTransform: "capitalize" }}
                     >
                       {u.status}
@@ -181,53 +237,77 @@ export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
                     >
                       {/* Edit */}
                       <button
-                        style={actionBtn(
-                          "var(--accent-blue)",
-                          "rgba(59,130,246,0.08)",
-                          "rgba(59,130,246,0.25)"
-                        )}
+                        disabled={u.status === "invited"}
+                        style={{
+                          ...actionBtn(
+                            "var(--accent-blue)",
+                            "rgba(59,130,246,0.08)",
+                            "rgba(59,130,246,0.25)"
+                          ),
+                          ...(u.status === "invited" ? { opacity: 0.4, cursor: "not-allowed" } : {}),
+                        }}
                       >
                         <PencilSimple size={12} />
                         Edit
                       </button>
 
-                      {/* Suspend / Activate */}
-                      <button
-                        onClick={() => toggleSuspend(u.id)}
-                        style={
-                          u.status === "active"
-                            ? actionBtn(
-                                "var(--accent-yellow)",
-                                "rgba(234,179,8,0.08)",
-                                "rgba(234,179,8,0.25)"
-                              )
-                            : actionBtn(
-                                "var(--accent-green)",
-                                "rgba(34,197,94,0.08)",
-                                "rgba(34,197,94,0.25)"
-                              )
-                        }
-                      >
-                        {u.status === "active" ? (
-                          <Prohibit size={12} />
-                        ) : (
-                          <CheckCircle size={12} />
-                        )}
-                        {u.status === "active" ? "Suspend" : "Activate"}
-                      </button>
+                      {/* Suspend / Activate — hidden for invited */}
+                      {u.status !== "invited" && (
+                        <button
+                          onClick={() => toggleSuspend(u.id)}
+                          style={
+                            u.status === "active"
+                              ? actionBtn(
+                                  "var(--accent-yellow)",
+                                  "rgba(234,179,8,0.08)",
+                                  "rgba(234,179,8,0.25)"
+                                )
+                              : actionBtn(
+                                  "var(--accent-green)",
+                                  "rgba(34,197,94,0.08)",
+                                  "rgba(34,197,94,0.25)"
+                                )
+                          }
+                        >
+                          {u.status === "active" ? (
+                            <Prohibit size={12} />
+                          ) : (
+                            <CheckCircle size={12} />
+                          )}
+                          {u.status === "active" ? "Suspend" : "Activate"}
+                        </button>
+                      )}
 
-                      {/* Delete */}
-                      <button
-                        onClick={() => handleDelete(u.id)}
-                        style={actionBtn(
-                          "var(--accent-red)",
-                          "rgba(239,68,68,0.08)",
-                          "rgba(239,68,68,0.25)"
-                        )}
-                      >
-                        <Trash size={12} />
-                        Delete
-                      </button>
+                      {/* Revoke (invited) / Delete (active or inactive) */}
+                      {u.status === "invited" ? (
+                        <button
+                          onClick={() => handleRevoke(u.id, u.email)}
+                          disabled={revoking.has(u.id)}
+                          style={{
+                            ...actionBtn(
+                              "var(--accent-yellow)",
+                              "rgba(234,179,8,0.08)",
+                              "rgba(234,179,8,0.25)"
+                            ),
+                            ...(revoking.has(u.id) ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+                          }}
+                        >
+                          <XCircle size={12} />
+                          {revoking.has(u.id) ? "Revoking…" : "Revoke"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(u.id)}
+                          style={actionBtn(
+                            "var(--accent-red)",
+                            "rgba(239,68,68,0.08)",
+                            "rgba(239,68,68,0.25)"
+                          )}
+                        >
+                          <Trash size={12} />
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -284,5 +364,16 @@ export function PortalUsersTable({ users: initial }: { users: PortalUser[] }) {
         </div>
       </div>
     </div>
+
+    {inviteOpen && (
+      <InviteUserModal
+        onClose={() => setInviteOpen(false)}
+        onInvited={(email) => {
+          handleInvited(email);
+          setInviteOpen(false);
+        }}
+      />
+    )}
+    </>
   );
 }

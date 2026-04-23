@@ -413,6 +413,7 @@ details.nav-group[open] summary .chevron { transform: rotate(180deg); }
 .badge.negative { background: var(--accent-red-bg); color: var(--accent-red); }
 .badge.outline-green { border: 1px solid var(--border-color-light); color: var(--accent-green); background: transparent; }
 .badge.outline-yellow { border: 1px solid var(--border-color-light); color: var(--accent-yellow); background: transparent; }
+.badge.neutral { background: rgba(59,130,246,0.1); color: var(--accent-blue); }
 
 .chart-area-placeholder { flex-grow: 1; display: flex; align-items: flex-end; margin-top: 16px;}
 .chart-area-placeholder.small { margin-top: 8px; }
@@ -1222,6 +1223,84 @@ details.nav-group[open] summary .chevron { transform: rotate(180deg); }
 .client-detail-health-label {
   font-size: 13px;
   font-weight: 600;
+}
+
+/* =========================================
+   MODAL
+   ========================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.modal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+.modal-close-btn:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+.modal-form {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Reserve space below each field so the absolute error never causes a layout shift */
+.modal-form .form-group {
+  margin-bottom: 0;
+  padding-bottom: 20px;
+}
+.modal-form .form-error {
+  bottom: 2px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+.modal-success {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.modal-success-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
 }
 
 /* =========================================
