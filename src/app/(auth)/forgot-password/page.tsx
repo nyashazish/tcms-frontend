@@ -4,10 +4,39 @@ import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useState } from "react";
 
-type Status = "idle" | "sent";
+type Status = "idle" | "submitting" | "sent" | "error";
 
 export default function ForgotPasswordPage() {
   const [status, setStatus] = useState<Status>("idle");
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus("submitting");
+    setServerError(null);
+
+    const email = (e.currentTarget.elements.namedItem("email") as HTMLInputElement).value;
+
+    try {
+      const res = await fetch("/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setServerError(data.error ?? "Something went wrong. Please try again.");
+        setStatus("error");
+        return;
+      }
+
+      setStatus("sent");
+    } catch {
+      setServerError("Network error. Please check your connection and try again.");
+      setStatus("error");
+    }
+  }
 
   return (
     <div className="auth-split">
@@ -45,32 +74,35 @@ export default function ForgotPasswordPage() {
               </Link>
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setStatus("sent");
-              }}
-            >
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label" htmlFor="email">
                   Email address
                 </label>
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   className="form-input"
                   placeholder="you@company.com"
                   autoComplete="email"
+                  autoFocus
                   required
+                  onChange={() => setServerError(null)}
                 />
               </div>
+
+              {serverError && (
+                <div className="form-server-error">{serverError}</div>
+              )}
 
               <button
                 type="submit"
                 className="btn-primary"
                 style={{ width: "100%", justifyContent: "center" }}
+                disabled={status === "submitting"}
               >
-                Send reset link
+                {status === "submitting" ? "Sending…" : "Send reset link"}
               </button>
             </form>
           )}

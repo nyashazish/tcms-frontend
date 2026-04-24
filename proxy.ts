@@ -19,7 +19,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Public routes (always accessible) ─────────────────────────────────────
-  const publicPaths = ["/login", "/forgot-password"];
+  const publicPaths = ["/login", "/forgot-password", "/reset-password"];
   const isPublic =
     publicPaths.includes(pathname) || pathname.startsWith("/auth/");
 
