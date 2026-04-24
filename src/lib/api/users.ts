@@ -31,12 +31,21 @@ export async function getUsers(): Promise<PortalUser[]> {
 
   const authUsers = authResult.data?.users ?? [];
 
+  const now = new Date();
+
   // All auth user IDs — used to skip orphaned profile rows (auth deleted without cascade)
   const authUserIds = new Set(authUsers.map((u) => u.id));
 
   // Confirmed subset — used to distinguish active vs invited
   const confirmedIds = new Set(
     authUsers.filter((u) => u.email_confirmed_at != null).map((u) => u.id)
+  );
+
+  // Banned subset — maps to 'inactive' status
+  const suspendedIds = new Set(
+    authUsers
+      .filter((u) => u.banned_until != null && new Date(u.banned_until) > now)
+      .map((u) => u.id)
   );
 
   return (profilesResult.data ?? [])
@@ -46,7 +55,11 @@ export async function getUsers(): Promise<PortalUser[]> {
       email: row.email ?? '',
       fullName: row.full_name ?? row.email ?? '',
       role: (row.role as PortalUser['role']) ?? 'viewer',
-      status: confirmedIds.has(row.id) ? 'active' : 'invited',
+      status: !confirmedIds.has(row.id)
+        ? 'invited'
+        : suspendedIds.has(row.id)
+        ? 'inactive'
+        : 'active',
       createdAt: row.created_at,
       updatedAt: row.updated_at ?? row.created_at,
     }));

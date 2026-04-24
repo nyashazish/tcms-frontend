@@ -14,7 +14,7 @@ export default async function PortalUsersPage() {
       <div className="section-header">
         <h2>Portal Users</h2>
       </div>
-      <PortalUsersTable users={users} />
+      <PortalUsersTable users={users} currentUserId={user.id} />
     </div>
   );
 }
