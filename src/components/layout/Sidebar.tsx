@@ -10,15 +10,17 @@ import {
   Bell,
   GearSix,
   List,
+  Funnel,
 } from "@phosphor-icons/react";
 import { useUser } from "@/components/auth/UserProvider";
 
 const allNavItems = [
-  { href: "/overview", label: "Overview", icon: SquaresFour, roles: ["admin", "account_manager", "viewer"] },
-  { href: "/clients", label: "Clients", icon: Users, roles: ["admin", "account_manager", "viewer"] },
-  { href: "/alerts", label: "Alerts", icon: Bell, roles: ["admin", "account_manager", "viewer"] },
-  { href: "/portal-users", label: "Portal Users", icon: UsersThree, roles: ["admin"] },
-  { href: "/admin", label: "Admin", icon: GearSix, roles: ["admin"] },
+  { href: "/overview",        label: "Overview",        icon: SquaresFour, roles: ["admin", "account_manager", "viewer"] },
+  { href: "/clients",         label: "Clients",         icon: Users,       roles: ["admin", "account_manager", "viewer"] },
+  { href: "/lead-generation", label: "Lead Generation", icon: Funnel,      roles: ["admin", "account_manager"] },
+  { href: "/alerts",          label: "Alerts",          icon: Bell,        roles: ["admin", "account_manager", "viewer"] },
+  { href: "/portal-users",    label: "Portal Users",    icon: UsersThree,  roles: ["admin"] },
+  { href: "/admin",           label: "Admin",           icon: GearSix,     roles: ["admin"] },
 ] as const;
 
 export default function Sidebar() {

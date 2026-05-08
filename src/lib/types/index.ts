@@ -37,6 +37,7 @@ export interface Client {
   id: string;
   name: string;
   industry: string;
+  googleId?: string;
   activeServices: ServiceType[];
   serviceHealth: Partial<Record<ServiceType, ServiceHealth>>;
   overallHealth: TrafficLight;

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, UploadSimple, Users } from "@phosphor-icons/react";
 import type { Client } from "@/lib/types";
 import { SERVICE_LABELS } from "@/lib/types";
 import { TrafficDot } from "@/components/dashboard/TrafficDot";
+import { AddClientModal } from "@/components/dashboard/AddClientModal";
+import { UploadCSVModal } from "@/components/dashboard/UploadCSVModal";
 
 interface Props {
   clients: Client[];
@@ -23,8 +25,11 @@ const HEALTH_COLORS: Record<string, string> = {
   red: "var(--accent-red)",
 };
 
-export function ClientGrid({ clients }: Props) {
+export function ClientGrid({ clients: initialClients }: Props) {
+  const [clients, setClients] = useState<Client[]>(initialClients);
   const [query, setQuery] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const filtered = query.trim()
     ? clients.filter(
@@ -34,8 +39,45 @@ export function ClientGrid({ clients }: Props) {
       )
     : clients;
 
+  function handleAdd(client: Client) {
+    setClients((prev) => [...prev, client]);
+  }
+
+  function handleUpload(incoming: Client[]) {
+    setClients((prev) => {
+      const existingIds = new Set(prev.map((c) => c.id));
+      const deduped = incoming.filter((c) => !existingIds.has(c.id));
+      return [...prev, ...deduped];
+    });
+  }
+
   return (
     <>
+      {/* Section header with action buttons */}
+      <div className="section-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <h2>Clients</h2>
+          <span
+            className="text-muted"
+            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}
+          >
+            <Users size={14} weight="regular" />
+            {clients.length} client{clients.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn-secondary" onClick={() => setUploadOpen(true)}>
+            <UploadSimple size={14} weight="bold" />
+            Upload CSV
+          </button>
+          <button className="btn-primary" onClick={() => setAddOpen(true)}>
+            <Plus size={14} weight="bold" />
+            Add Client
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
       <div className="client-search">
         <span className="client-search-icon">
           <MagnifyingGlass size={16} />
@@ -54,7 +96,9 @@ export function ClientGrid({ clients }: Props) {
           className="text-muted"
           style={{ fontSize: 13, padding: "40px 0", textAlign: "center" }}
         >
-          No clients match &ldquo;{query}&rdquo;
+          {query.trim()
+            ? <>No clients match &ldquo;{query}&rdquo;</>
+            : "No clients yet. Add one above or upload a CSV."}
         </p>
       ) : (
         <div className="client-grid">
@@ -67,7 +111,9 @@ export function ClientGrid({ clients }: Props) {
               <div className="client-card-header">
                 <div>
                   <p className="client-card-name">{client.name}</p>
-                  <p className="card-subtitle">{client.industry}</p>
+                  <p className="card-subtitle">
+                    {client.industry || (client.googleId ? `ID: ${client.googleId}` : "New client")}
+                  </p>
                 </div>
                 <div className="client-card-health">
                   <TrafficDot status={client.overallHealth} size="md" />
@@ -80,19 +126,39 @@ export function ClientGrid({ clients }: Props) {
                 </div>
               </div>
 
-              <div className="client-card-services">
-                {client.activeServices.map((service) => (
-                  <div key={service} className="client-card-service">
-                    <TrafficDot
-                      status={client.serviceHealth[service]!.status}
-                    />
-                    <span>{SERVICE_LABELS[service]}</span>
-                  </div>
-                ))}
-              </div>
+              {client.activeServices.length > 0 && (
+                <div className="client-card-services">
+                  {client.activeServices.map((service) => (
+                    <div key={service} className="client-card-service">
+                      <TrafficDot status={client.serviceHealth[service]!.status} />
+                      <span>{SERVICE_LABELS[service]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Link>
           ))}
         </div>
+      )}
+
+      {addOpen && (
+        <AddClientModal
+          onClose={() => setAddOpen(false)}
+          onAdd={(client) => {
+            handleAdd(client);
+            setAddOpen(false);
+          }}
+        />
+      )}
+
+      {uploadOpen && (
+        <UploadCSVModal
+          onClose={() => setUploadOpen(false)}
+          onUpload={(incoming) => {
+            handleUpload(incoming);
+            setUploadOpen(false);
+          }}
+        />
       )}
     </>
   );
