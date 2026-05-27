@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Eye, EyeSlash, CheckCircle } from "@phosphor-icons/react";
-import { createClient } from "@/lib/supabase/client";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 type Stage = "loading" | "error" | "form" | "submitting" | "done";
 
@@ -34,7 +35,7 @@ export default function AcceptInvitePage() {
   const errors = validate(password, confirm);
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1); // strip leading #
+    const hash = window.location.hash.slice(1);
     const params = new URLSearchParams(hash);
 
     const accessToken = params.get("access_token");
@@ -47,19 +48,11 @@ export default function AcceptInvitePage() {
       return;
     }
 
-    const supabase = createClient();
-    supabase.auth
-      .setSession({ access_token: accessToken, refresh_token: refreshToken })
-      .then(({ error }) => {
-        if (error) {
-          setErrorMsg("This invite link has expired. Ask an admin to send a new invitation.");
-          setStage("error");
-        } else {
-          // Clear the tokens from the URL so a page refresh doesn't re-process them
-          history.replaceState(null, "", window.location.pathname);
-          setStage("form");
-        }
-      });
+    document.cookie = `tcms-access-token=${accessToken}; path=/; max-age=3600; SameSite=Lax`;
+    document.cookie = `tcms-refresh-token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+
+    history.replaceState(null, "", window.location.pathname);
+    setStage("form");
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -70,19 +63,42 @@ export default function AcceptInvitePage() {
     setStage("submitting");
     setServerError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
+    const accessToken = new URLSearchParams(window.location.hash.slice(1)).get("access_token");
+    const refreshToken = new URLSearchParams(window.location.hash.slice(1)).get("refresh_token");
 
-    if (error) {
-      setServerError(error.message ?? "Failed to set password. Please try again.");
+    if (!accessToken || !refreshToken) {
+      setServerError("Session expired. Ask an admin to send a new invitation.");
       setStage("form");
       return;
     }
 
-    setStage("done");
-    setTimeout(() => {
-      window.location.href = "/overview";
-    }, 1800);
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setServerError(data.message || "Failed to set password. Please try again.");
+        setStage("form");
+        return;
+      }
+
+      setStage("done");
+      setTimeout(() => {
+        window.location.href = "/overview";
+      }, 1800);
+    } catch {
+      setServerError("An unexpected error occurred. Please try again.");
+      setStage("form");
+    }
   }
 
   return (
@@ -104,18 +120,13 @@ export default function AcceptInvitePage() {
 
       <section className="auth-form-section">
         <div className="auth-card">
-
-          {/* Loading */}
           {stage === "loading" && (
-            <>
-              <div className="auth-header">
-                <h2>Verifying your invite…</h2>
-                <p>Just a moment while we confirm your link.</p>
-              </div>
-            </>
+            <div className="auth-header">
+              <h2>Verifying your invite…</h2>
+              <p>Just a moment while we confirm your link.</p>
+            </div>
           )}
 
-          {/* Error */}
           {stage === "error" && (
             <>
               <div className="auth-header">
@@ -132,7 +143,6 @@ export default function AcceptInvitePage() {
             </>
           )}
 
-          {/* Password form */}
           {(stage === "form" || stage === "submitting") && (
             <>
               <div className="auth-header">
@@ -228,7 +238,6 @@ export default function AcceptInvitePage() {
             </>
           )}
 
-          {/* Success */}
           {stage === "done" && (
             <div style={{ textAlign: "center", padding: "16px 0" }}>
               <CheckCircle
@@ -243,7 +252,6 @@ export default function AcceptInvitePage() {
               </p>
             </div>
           )}
-
         </div>
       </section>
     </div>

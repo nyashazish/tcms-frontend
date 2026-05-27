@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export async function POST(request: Request) {
   let body: { email?: unknown };
   try {
@@ -13,51 +15,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'A valid email address is required' }, { status: 400 });
   }
 
-  // Always respond 200 — never reveal whether the email exists.
-
-  // ── Dev mode ───────────────────────────────────────────────────────────────
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_API_URL) {
     console.log(`[DEV] Mock password reset → ${email}`);
     console.log('[DEV] Mock reset link: http://localhost:3000/reset-password#access_token=dev&refresh_token=dev&type=recovery');
     return NextResponse.json({ ok: true, dev: true });
   }
 
-  // ── Production ─────────────────────────────────────────────────────────────
-  const { createAdminClient } = await import('@/lib/supabase/admin');
-  const admin = createAdminClient();
+  try {
+    const response = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const data = await response.json();
 
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: 'recovery',
-    email,
-    options: {
-      redirectTo: `${appUrl}/reset-password`,
-    },
-  });
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data.error || 'Bad Request', message: data.message || 'Failed to send reset email' },
+        { status: response.status }
+      );
+    }
 
-  // If user doesn't exist, generateLink returns an error — swallow it silently.
-  if (linkError || !linkData?.properties?.action_link) {
+    if (data.reset_link) {
+      const { resend } = await import('@/lib/email/resend');
+      const { buildResetPasswordEmail } = await import('@/lib/email/templates/reset-password');
+
+      const { subject, html } = buildResetPasswordEmail({
+        actionLink: data.reset_link,
+      });
+
+      const { error: emailError } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL ?? 'noreply@hirezim.ai',
+        to: email,
+        subject,
+        html,
+      });
+
+      if (emailError) {
+        console.error('[POST /auth/forgot-password] Resend error:', emailError);
+      }
+    }
+
     return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('[POST /auth/forgot-password] Error:', err);
+    return NextResponse.json(
+      { error: 'Internal Server Error', message: 'An unexpected error occurred' },
+      { status: 500 }
+    );
   }
-
-  const { resend } = await import('@/lib/email/resend');
-  const { buildResetPasswordEmail } = await import('@/lib/email/templates/reset-password');
-
-  const { subject, html } = buildResetPasswordEmail({
-    actionLink: linkData.properties.action_link,
-  });
-
-  const { error: emailError } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? 'noreply@hirezim.ai',
-    to: email,
-    subject,
-    html,
-  });
-
-  if (emailError) {
-    console.error('[POST /auth/forgot-password] Resend error:', emailError);
-  }
-
-  return NextResponse.json({ ok: true });
 }

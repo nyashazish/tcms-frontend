@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export async function POST(request: Request) {
   try {
     const { refresh_token } = await request.json();
@@ -11,33 +13,29 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Invalid or expired refresh token' },
         { status: 401 }
       );
     }
 
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.refreshSession({ refresh_token });
-
-    if (error || !data.session) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Invalid or expired refresh token' },
-        { status: 401 }
-      );
-    }
-
-    const { session } = data;
-
-    return NextResponse.json({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-      token_type: 'bearer',
-      expires_in: session.expires_in,
-      expires_at: session.expires_at,
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token }),
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data.error || 'Unauthorized', message: data.message || 'Invalid or expired refresh token' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json(data);
   } catch {
     return NextResponse.json(
       { error: 'Internal Server Error', message: 'An unexpected error occurred' },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
@@ -18,18 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme') || 'system';
-                  if (theme !== 'system') {
-                    document.documentElement.setAttribute('data-theme', theme);
-                  }
-                } catch (e) {}
-              })()
-            `,
+            __html: `(function(){try{var t=localStorage.getItem('theme')||'system';if(t!=='system')document.documentElement.setAttribute('data-theme',t);}catch(e){}})()`,
           }}
         />
       </head>

@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MagnifyingGlass, Plus, UploadSimple, Users } from "@phosphor-icons/react";
+import { useRouter, usePathname } from "next/navigation";
+import { MagnifyingGlass, Plus, UploadSimple, Users, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { Client } from "@/lib/types";
 import { SERVICE_LABELS } from "@/lib/types";
 import { TrafficDot } from "@/components/dashboard/TrafficDot";
 import { AddClientModal } from "@/components/dashboard/AddClientModal";
 import { UploadCSVModal } from "@/components/dashboard/UploadCSVModal";
 
+interface PaginationMeta {
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
 interface Props {
   clients: Client[];
+  pagination?: PaginationMeta;
 }
 
 const HEALTH_LABELS: Record<string, string> = {
@@ -25,11 +34,13 @@ const HEALTH_COLORS: Record<string, string> = {
   red: "var(--accent-red)",
 };
 
-export function ClientGrid({ clients: initialClients }: Props) {
+export function ClientGrid({ clients: initialClients, pagination }: Props) {
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [query, setQuery] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const filtered = query.trim()
     ? clients.filter(
@@ -62,7 +73,7 @@ export function ClientGrid({ clients: initialClients }: Props) {
             style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}
           >
             <Users size={14} weight="regular" />
-            {clients.length} client{clients.length !== 1 ? "s" : ""}
+            {pagination ? pagination.total : clients.length} client{(pagination ? pagination.total : clients.length) !== 1 ? "s" : ""}
           </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -138,6 +149,54 @@ export function ClientGrid({ clients: initialClients }: Props) {
               )}
             </Link>
           ))}
+        </div>
+      )}
+
+      {pagination && pagination.totalPages > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
+          <span className="pagination-info">
+            {(() => {
+              const start = (pagination.page - 1) * pagination.limit + 1;
+              const end = Math.min(pagination.page * pagination.limit, pagination.total);
+              return `${start}–${end} of ${pagination.total} clients`;
+            })()}
+          </span>
+          <div className="pagination-controls">
+            <button
+              className={`pagination-btn${pagination.page === 1 ? " disabled" : ""}`}
+              disabled={pagination.page === 1}
+              onClick={() => router.push(`${pathname}?page=${pagination.page - 1}`)}
+            >
+              <CaretLeft size={12} />
+            </button>
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - pagination.page) <= 1)
+              .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${idx}`} className="pagination-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`pagination-btn${p === pagination.page ? " active" : ""}`}
+                    onClick={() => router.push(`${pathname}?page=${p}`)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              className={`pagination-btn${pagination.page === pagination.totalPages ? " disabled" : ""}`}
+              disabled={pagination.page === pagination.totalPages}
+              onClick={() => router.push(`${pathname}?page=${pagination.page + 1}`)}
+            >
+              <CaretRight size={12} />
+            </button>
+          </div>
         </div>
       )}
 

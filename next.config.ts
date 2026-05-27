@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   devIndicators: false,
   turbopack: {
-    root: __dirname,
+    root: process.cwd(),
   },
 };
 

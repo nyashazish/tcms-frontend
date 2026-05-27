@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/getSession';
 import type { Role } from '@/lib/auth/roles';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 const VALID_ROLES: Role[] = ['admin', 'account_manager', 'viewer'];
+
+async function getAccessToken(): Promise<string | null> {
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  return cookieStore.get('tcms-access-token')?.value ?? null;
+}
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -28,68 +36,42 @@ export async function POST(request: Request) {
 
   const name = typeof fullName === 'string' ? fullName.trim() : '';
 
-  // ── Dev mode ───────────────────────────────────────────────────────────────
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_API_URL) {
     console.log(`[DEV] Mock invite → ${email} (${role})`);
     console.log('[DEV] Mock invite link: http://localhost:3000/overview?dev-invited=1');
     return NextResponse.json({ success: true, dev: true });
   }
 
-  // ── Production ─────────────────────────────────────────────────────────────
-  const { createAdminClient } = await import('@/lib/supabase/admin');
-  const admin = createAdminClient();
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-  // Duplicate check
-  const { data: existing } = await admin
-    .from('user_profiles')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle();
+  const response = await fetch(`${API_URL}/auth/invite`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ email, fullName: name }),
+  });
 
-  if (existing) {
+  const data = await response.json();
+
+  if (!response.ok) {
     return NextResponse.json(
-      { error: 'A user with this email already exists' },
-      { status: 409 }
+      { error: data.message || data.error || 'Failed to generate invite link' },
+      { status: response.status }
     );
   }
 
-  // Generate invite link (creates the auth user, no email sent by Supabase)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: 'invite',
-    email,
-    options: {
-      data: { role, full_name: name },
-      redirectTo: `${appUrl}/accept-invite`,
-    },
-  });
-
-  if (linkError || !linkData?.properties?.action_link) {
-    console.error('[POST /api/invitations] generateLink error:', linkError);
-    return NextResponse.json({ error: 'Failed to generate invite link' }, { status: 500 });
-  }
-
-  // Pre-create user_profiles row with the assigned role
-  const { error: profileError } = await admin.from('user_profiles').upsert({
-    id: linkData.user.id,
-    email,
-    full_name: name || null,
-    role,
-  });
-
-  if (profileError) {
-    console.error('[POST /api/invitations] upsert user_profiles error:', profileError);
-    return NextResponse.json({ error: 'Failed to save user profile' }, { status: 500 });
-  }
-
-  // Send branded email via Resend
   const { resend } = await import('@/lib/email/resend');
   const { buildInviteEmail } = await import('@/lib/email/templates/invite');
 
   const { subject, html } = buildInviteEmail({
     inviterEmail: session.email,
     role: role as Role,
-    actionLink: linkData.properties.action_link,
+    actionLink: data.user?.invited_at ? 'http://localhost:3000/accept-invite' : '',
   });
 
   const { error: emailError } = await resend.emails.send({
@@ -128,36 +110,35 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'A valid email address is required' }, { status: 400 });
   }
 
-  // ── Dev mode ───────────────────────────────────────────────────────────────
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_API_URL) {
     console.log(`[DEV] Mock revoke invitation → ${email}`);
     return NextResponse.json({ success: true, dev: true });
   }
 
-  // ── Production ─────────────────────────────────────────────────────────────
-  const { createAdminClient } = await import('@/lib/supabase/admin');
-  const admin = createAdminClient();
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-  // Look up the user_profiles row to get the auth UUID
-  const { data: profile } = await admin
-    .from('user_profiles')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle();
+  const usersResponse = await fetch(`${API_URL}/users`, {
+    headers: { 'Authorization': `Bearer ${accessToken}` },
+  });
+  const usersData = await usersResponse.json();
+  const user = usersData.data?.find((u: any) => u.email === email);
 
-  if (!profile) {
+  if (!user) {
     return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
   }
 
-  // Delete from Supabase Auth (cascades the session; user_profiles cleaned up below)
-  const { error: authDeleteError } = await admin.auth.admin.deleteUser(profile.id);
-  if (authDeleteError) {
-    console.error('[DELETE /api/invitations] deleteUser error:', authDeleteError);
-    return NextResponse.json({ error: 'Failed to revoke invitation' }, { status: 500 });
-  }
+  const deleteResponse = await fetch(`${API_URL}/auth/${user.id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${accessToken}` },
+  });
 
-  // Delete user_profiles row (belt-and-suspenders in case there is no cascade)
-  await admin.from('user_profiles').delete().eq('id', profile.id);
+  if (!deleteResponse.ok) {
+    const data = await deleteResponse.json();
+    return NextResponse.json({ error: data.error || 'Failed to revoke invitation' }, { status: deleteResponse.status });
+  }
 
   return NextResponse.json({ success: true });
 }

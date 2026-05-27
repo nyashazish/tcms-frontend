@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/getSession";
-import {
-  getAgencyStats,
-  getServiceHealthDistribution,
-  getOpenAlerts,
-  getClientsForRole,
-} from "@/lib/mock-data";
-import { SERVICE_LABELS, type ServiceType } from "@/lib/types";
+import { getOverview, mapHealthStatus, mapServiceType, mapAlertSeverity } from "@/lib/api";
+import { getAgencyStats, getServiceHealthDistribution, getOpenAlerts, getClientsForRole } from "@/lib/mock-data";
+import { SERVICE_LABELS, type ServiceType, type ServiceHealth, type TrafficLight } from "@/lib/types";
 import { TrafficDot } from "@/components/dashboard/TrafficDot";
 import type { ServiceHealthPoint } from "@/components/dashboard/ServiceHealthBars";
 import { ServiceHealthBars } from "@/components/dashboard/OverviewCharts";
@@ -15,9 +11,11 @@ import {
   CheckCircle,
   XCircle,
   Users,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react/dist/ssr";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const CLIENT_PAGE_LIMIT = 20;
 
 const SERVICE_COLS: ServiceType[] = [
   "google-ads",
@@ -39,8 +37,6 @@ const COL_LABELS: Record<ServiceType, string> = {
   "lead-gen": "Leads",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     month: "short",
@@ -51,23 +47,107 @@ function formatTimestamp(iso: string): string {
   });
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function mapApiServiceHealth(apiData: { serviceType: string; critical: number; warning: number; healthy: number }[]): ServiceHealthPoint[] {
+  return apiData.map((d) => ({
+    service: mapServiceType(d.serviceType) as ServiceType,
+    total: d.critical + d.warning + d.healthy,
+    green: d.healthy,
+    yellow: d.warning,
+    red: d.critical,
+  }));
+}
 
-export default async function OverviewPage() {
+function mapApiClientToMock(apiClient: { id: string; name: string; healthStatus: string; services: { serviceType: string; healthStatus: string }[] }) {
+  return {
+    id: apiClient.id,
+    name: apiClient.name,
+    industry: 'Marketing Services',
+    activeServices: apiClient.services.map((s) => mapServiceType(s.serviceType) as ServiceType),
+    overallHealth: mapHealthStatus(apiClient.healthStatus),
+    serviceHealth: Object.fromEntries(
+      apiClient.services.map((s) => [
+        mapServiceType(s.serviceType),
+        { status: mapHealthStatus(s.healthStatus) as TrafficLight, lastUpdated: new Date().toISOString(), summary: '', keyMetric: '' } satisfies ServiceHealth,
+      ])
+    ) as Partial<Record<ServiceType, ServiceHealth>>,
+  };
+}
+
+function mapApiAlertToMock(apiAlert: { id: string; clientId: string; clientName: string; service?: string; serviceType?: string; severity: string; message: string; timestamp?: string; triggeredAt?: string }) {
+  const serviceRaw = apiAlert.service ?? apiAlert.serviceType ?? '';
+  return {
+    id: apiAlert.id,
+    clientId: apiAlert.clientId,
+    clientName: apiAlert.clientName,
+    service: mapServiceType(serviceRaw) as ServiceType,
+    severity: mapAlertSeverity(apiAlert.severity),
+    message: apiAlert.message,
+    timestamp: apiAlert.timestamp ?? apiAlert.triggeredAt ?? new Date().toISOString(),
+  };
+}
+
+export default async function OverviewPage({ searchParams }: { searchParams: Promise<{ clientPage?: string }> }) {
   const user = await getSession();
   if (!user) return null;
 
-  const stats = getAgencyStats();
-  const serviceHealthRaw = getServiceHealthDistribution();
-  const serviceHealth: ServiceHealthPoint[] = serviceHealthRaw.map((d) => ({
-    service: d.service as ServiceType,
-    total: d.total,
-    green: d.green,
-    yellow: d.yellow,
-    red: d.red,
-  }));
-  const alerts = getOpenAlerts();
-  const clients = getClientsForRole(user.role, user.assignedClients);
+  const { clientPage: clientPageParam } = await searchParams;
+  const clientPage = Math.max(1, parseInt(clientPageParam ?? '1') || 1);
+
+  let stats: { total: number; red: number; yellow: number; green: number };
+  let serviceHealth: ServiceHealthPoint[];
+  let alerts: { id: string; clientId: string; clientName: string; service: ServiceType; severity: TrafficLight; message: string; timestamp: string }[];
+  let clients: ReturnType<typeof mapApiClientToMock>[];
+  let clientPagination = { total: 0, page: 1, totalPages: 1, limit: CLIENT_PAGE_LIMIT };
+
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    try {
+      const data = await getOverview({
+        clientPage,
+        clientLimit: CLIENT_PAGE_LIMIT,
+        alertPage: 1,
+        alertLimit: 20,
+      });
+
+      stats = {
+        total: data.stats.totalClients,
+        red: data.stats.critical,
+        yellow: data.stats.warning,
+        green: data.stats.healthy,
+      };
+      serviceHealth = mapApiServiceHealth(data.serviceHealthDistribution);
+      alerts = data.activeAlerts.data.map(mapApiAlertToMock);
+      clients = data.clientHealth.data.map(mapApiClientToMock);
+      clientPagination = {
+        total: data.clientHealth.total,
+        page: data.clientHealth.page,
+        totalPages: data.clientHealth.totalPages,
+        limit: data.clientHealth.limit,
+      };
+    } catch (error) {
+      console.error('Failed to fetch overview from API:', error);
+      stats = getAgencyStats();
+      serviceHealth = getServiceHealthDistribution().map((d) => ({
+        service: d.service as ServiceType,
+        total: d.total,
+        green: d.green,
+        yellow: d.yellow,
+        red: d.red,
+      }));
+      alerts = getOpenAlerts() as any;
+      clients = getClientsForRole(user.role, user.assignedClients) as any;
+    }
+  } else {
+    stats = getAgencyStats();
+    serviceHealth = getServiceHealthDistribution().map((d) => ({
+      service: d.service as ServiceType,
+      total: d.total,
+      green: d.green,
+      yellow: d.yellow,
+      red: d.red,
+    }));
+    alerts = getOpenAlerts() as any;
+    clients = getClientsForRole(user.role, user.assignedClients) as any;
+  }
 
   const today = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -77,7 +157,6 @@ export default async function OverviewPage() {
 
   return (
     <div>
-      {/* ── Page header ───────────────────────────────────────────────────── */}
       <div className="section-header">
         <h2>Overview</h2>
         <span className="text-muted" style={{ fontSize: 13 }}>
@@ -85,9 +164,7 @@ export default async function OverviewPage() {
         </span>
       </div>
 
-      {/* ── KPI Cards ─────────────────────────────────────────────────────── */}
       <div className="kpi-grid" style={{ marginBottom: 28 }}>
-        {/* Total Clients */}
         <div className="card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <Users size={16} weight="regular" style={{ color: "var(--text-muted)" }} />
@@ -97,7 +174,6 @@ export default async function OverviewPage() {
           <p className="card-subtitle">accounts monitored</p>
         </div>
 
-        {/* Critical */}
         <div className="card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <XCircle size={16} weight="regular" style={{ color: "var(--accent-red)" }} />
@@ -109,7 +185,6 @@ export default async function OverviewPage() {
           </p>
         </div>
 
-        {/* Warnings */}
         <div className="card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <WarningCircle size={16} weight="regular" style={{ color: "var(--accent-yellow)" }} />
@@ -121,7 +196,6 @@ export default async function OverviewPage() {
           </p>
         </div>
 
-        {/* Healthy */}
         <div className="card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <CheckCircle size={16} weight="regular" style={{ color: "var(--accent-green)" }} />
@@ -134,12 +208,7 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {/* ── Service Health Bars + Alert Feed ──────────────────────────────── */}
-      <div
-        className="dashboard-grid today-grid"
-        style={{ marginBottom: 28 }}
-      >
-        {/* Service health distribution */}
+      <div className="dashboard-grid today-grid" style={{ marginBottom: 28 }}>
         <div className="card">
           <div className="card-header" style={{ marginBottom: 8 }}>
             <p className="card-title" style={{ margin: 0 }}>
@@ -152,7 +221,6 @@ export default async function OverviewPage() {
           <ServiceHealthBars data={serviceHealth} />
         </div>
 
-        {/* Active alerts feed */}
         <div className="card">
           <div className="card-header" style={{ marginBottom: 12 }}>
             <p className="card-title" style={{ margin: 0 }}>Active Alerts</p>
@@ -203,7 +271,6 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {/* ── Client Health Table ────────────────────────────────────────────── */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         <div
           className="card-header"
@@ -211,7 +278,7 @@ export default async function OverviewPage() {
         >
           <p className="card-title" style={{ margin: 0 }}>Client Health</p>
           <span className="text-muted" style={{ fontSize: 12 }}>
-            {clients.length} client{clients.length !== 1 ? "s" : ""}
+            {clientPagination.total || clients.length} client{(clientPagination.total || clients.length) !== 1 ? "s" : ""}
           </span>
         </div>
 
@@ -257,7 +324,7 @@ export default async function OverviewPage() {
                       style={{ textAlign: "center", padding: "12px 8px" }}
                     >
                       {client.activeServices.includes(s) ? (
-                        <TrafficDot status={client.serviceHealth[s]!.status} />
+                        <TrafficDot status={client.serviceHealth[s as ServiceType]?.status as 'green' | 'yellow' | 'red'} />
                       ) : (
                         <span className="text-muted" style={{ fontSize: 12 }}>
                           —
@@ -297,6 +364,54 @@ export default async function OverviewPage() {
             </tbody>
           </table>
         </div>
+
+        {clientPagination.totalPages > 1 && (() => {
+          const { page, totalPages, total, limit } = clientPagination;
+          const start = (page - 1) * limit + 1;
+          const end = Math.min(page * limit, total);
+          const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+            .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+              if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
+              acc.push(p);
+              return acc;
+            }, []);
+
+          return (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", borderTop: "1px solid var(--border-color)" }}>
+              <span className="pagination-info">{start}–{end} of {total} clients</span>
+              <div className="pagination-controls">
+                <Link
+                  href={`/overview?clientPage=${page - 1}`}
+                  className={`pagination-btn${page === 1 ? " disabled" : ""}`}
+                  aria-disabled={page === 1}
+                >
+                  <CaretLeft size={12} />
+                </Link>
+                {pages.map((p, idx) =>
+                  p === "…" ? (
+                    <span key={`ellipsis-${idx}`} className="pagination-ellipsis">…</span>
+                  ) : (
+                    <Link
+                      key={p}
+                      href={`/overview?clientPage=${p}`}
+                      className={`pagination-btn${p === page ? " active" : ""}`}
+                    >
+                      {p}
+                    </Link>
+                  )
+                )}
+                <Link
+                  href={`/overview?clientPage=${page + 1}`}
+                  className={`pagination-btn${page === totalPages ? " disabled" : ""}`}
+                  aria-disabled={page === totalPages}
+                >
+                  <CaretRight size={12} />
+                </Link>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

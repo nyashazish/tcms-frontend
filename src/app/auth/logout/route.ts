@@ -1,48 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
       const res = NextResponse.json({ message: 'Logged out successfully' });
       res.cookies.delete('tcms-dev-auth');
       return res;
     }
 
-    // Build the response first so setAll can write directly onto its Set-Cookie headers.
-    // The shared createClient() writes to next/headers cookies(), which is read-only
-    // in Route Handlers — cookie deletions would be silently dropped.
-    const response = NextResponse.json({ message: 'Logged out successfully' });
+    const accessToken = request.cookies.get('tcms-access-token')?.value;
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: (cookiesToSet) => {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              response.cookies.set(name, value, options);
-            });
-          },
+    if (accessToken) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
         },
-      }
-    );
+      });
+    }
 
-    await supabase.auth.signOut();
-
-    // Explicitly delete every Supabase auth cookie that arrived on the request.
-    // signOut() clears the in-memory session but doesn't always emit Set-Cookie
-    // headers for every chunked token cookie (sb-*-auth-token.0, .1, …).
-    request.cookies.getAll().forEach(({ name }) => {
-      if (name.startsWith('sb-')) {
-        response.cookies.delete(name);
-      }
-    });
+    const response = NextResponse.json({ message: 'Logged out successfully' });
+    response.cookies.delete('tcms-access-token');
+    response.cookies.delete('tcms-refresh-token');
 
     return response;
   } catch {

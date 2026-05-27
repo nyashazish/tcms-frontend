@@ -1,8 +1,15 @@
 import type { PortalUser } from '@/components/dashboard/PortalUsersTable';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+async function getAccessToken(): Promise<string | null> {
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  return cookieStore.get('tcms-access-token')?.value ?? null;
+}
+
 export async function getUsers(): Promise<PortalUser[]> {
-  // Dev mode — no Supabase configured
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_API_URL) {
     const { MOCK_ADMIN_USERS } = await import('@/lib/mock-data');
     return MOCK_ADMIN_USERS.map((u) => ({
       id: u.id,
@@ -15,52 +22,28 @@ export async function getUsers(): Promise<PortalUser[]> {
     }));
   }
 
-  const { createAdminClient } = await import('@/lib/supabase/admin');
-  const admin = createAdminClient();
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw new Error('Not authenticated');
+  }
 
-  // Fetch profiles and auth users in parallel
-  const [profilesResult, authResult] = await Promise.all([
-    admin
-      .from('user_profiles')
-      .select('id, email, full_name, role, created_at, updated_at')
-      .order('created_at', { ascending: false }),
-    admin.auth.admin.listUsers(),
-  ]);
+  const response = await fetch(`${API_URL}/users`, {
+    headers: { 'Authorization': `Bearer ${accessToken}` },
+  });
 
-  if (profilesResult.error) throw new Error(profilesResult.error.message);
+  if (!response.ok) {
+    throw new Error('Failed to fetch users');
+  }
 
-  const authUsers = authResult.data?.users ?? [];
+  const data = await response.json();
 
-  const now = new Date();
-
-  // All auth user IDs — used to skip orphaned profile rows (auth deleted without cascade)
-  const authUserIds = new Set(authUsers.map((u) => u.id));
-
-  // Confirmed subset — used to distinguish active vs invited
-  const confirmedIds = new Set(
-    authUsers.filter((u) => u.email_confirmed_at != null).map((u) => u.id)
-  );
-
-  // Banned subset — maps to 'inactive' status
-  const suspendedIds = new Set(
-    authUsers
-      .filter((u) => u.banned_until != null && new Date(u.banned_until) > now)
-      .map((u) => u.id)
-  );
-
-  return (profilesResult.data ?? [])
-    .filter((row) => authUserIds.has(row.id))
-    .map((row) => ({
-      id: row.id,
-      email: row.email ?? '',
-      fullName: row.full_name ?? row.email ?? '',
-      role: (row.role as PortalUser['role']) ?? 'viewer',
-      status: !confirmedIds.has(row.id)
-        ? 'invited'
-        : suspendedIds.has(row.id)
-        ? 'inactive'
-        : 'active',
-      createdAt: row.created_at,
-      updatedAt: row.updated_at ?? row.created_at,
-    }));
+  return (data.data ?? []).map((row: any) => ({
+    id: row.id,
+    email: row.email ?? '',
+    fullName: row.fullName ?? row.email ?? '',
+    role: (row.role as PortalUser['role']) ?? 'viewer',
+    status: row.emailConfirmedAt ? 'active' : 'invited',
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt ?? row.createdAt,
+  }));
 }

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -11,8 +13,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Dev mode — no Supabase configured, set a lightweight session cookie
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
       const res = NextResponse.json({
         access_token: 'dev-token',
         refresh_token: 'dev-refresh',
@@ -35,30 +36,38 @@ export async function POST(request: Request) {
       return res;
     }
 
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (error || !data.session) {
+    const data = await response.json();
+
+    if (!response.ok) {
       return NextResponse.json(
-        { error: 'Unauthorized', message: 'Invalid email or password' },
-        { status: 401 }
+        { error: data.error || 'Unauthorized', message: data.message || 'Invalid email or password' },
+        { status: response.status }
       );
     }
 
-    const { session, user } = data;
-    const role = user.app_metadata?.role ?? 'viewer';
-    const clientIds = role === 'admin' ? [] : (user.app_metadata?.assigned_clients ?? []);
-    const fullName: string = user.user_metadata?.full_name ?? user.email ?? '';
-
-    return NextResponse.json({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-      token_type: 'bearer',
-      expires_in: session.expires_in,
-      expires_at: session.expires_at,
-      user: { id: user.id, email: user.email, role, clientIds, fullName },
+    const res = NextResponse.json(data);
+    res.cookies.set('tcms-access-token', data.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: data.expires_in,
     });
+    res.cookies.set('tcms-refresh-token', data.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return res;
   } catch {
     return NextResponse.json(
       { error: 'Internal Server Error', message: 'An unexpected error occurred' },

@@ -1,13 +1,12 @@
 import type { AppUser, Role } from './roles';
 import { DEV_USER } from './roles';
 
-const isSupabaseConfigured =
-  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  !!(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+const isApiConfigured = !!process.env.NEXT_PUBLIC_API_URL;
 
 export async function getSession(): Promise<AppUser | null> {
-  // ── Dev mode ───────────────────────────────────────────────────────────────
-  if (!isSupabaseConfigured) {
+  if (!isApiConfigured) {
     const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     const devAuth = cookieStore.get('tcms-dev-auth');
@@ -29,34 +28,33 @@ export async function getSession(): Promise<AppUser | null> {
     return DEV_USER;
   }
 
-  // ── Production ─────────────────────────────────────────────────────────────
   try {
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('tcms-access-token')?.value;
 
-    // Verify the session token with the Supabase Auth server
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return null;
+    if (!accessToken) return null;
 
-    // Role and name live in user_profiles, not app_metadata
-    const { createAdminClient } = await import('@/lib/supabase/admin');
-    const admin = createAdminClient();
-    const { data: profile } = await admin
-      .from('user_profiles')
-      .select('full_name, role')
-      .eq('id', user.id)
-      .single();
+    const response = await fetch(`${API_URL}/me`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
 
-    const role: Role = (profile?.role as Role) ?? 'viewer';
-    const fullName: string | undefined =
-      profile?.full_name ?? user.user_metadata?.full_name ?? undefined;
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    if (!data.user) return null;
+
+    const { user } = data;
 
     return {
       id: user.id,
-      email: user.email ?? '',
-      fullName,
-      role,
-      assignedClients: [],
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role as Role,
+      assignedClients: user.clientIds ?? [],
     };
   } catch {
     return null;
